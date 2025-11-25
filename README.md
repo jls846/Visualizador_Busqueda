@@ -6,9 +6,7 @@ markdown
 Visualizador interactivo de algoritmos de búsqueda en laberintos: **BFS, DFS, Greedy Best-First y A\***.  
 Permite crear laberintos personalizados, cargar ejemplos predefinidos y observar paso a paso cómo cada algoritmo explora y encuentra la ruta óptima.
 
-![Ejemplo de visualización](https://via.placeholder.com/800x400/1e1e2f/00ff99?text=Algorithm+Visualizer+Demo)
-
-*(Reemplaza esta imagen con una captura real al subir a GitHub)*
+<img width="1817" height="795" alt="image" src="https://github.com/user-attachments/assets/7d262279-51d4-482a-a26b-812484acfdfb" />
 
 ---
 
