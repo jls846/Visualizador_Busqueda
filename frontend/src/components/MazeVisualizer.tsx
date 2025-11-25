@@ -1,21 +1,40 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
 
-const START_COLORS = ['#00ff99', '#ffcc00', '#ff66ff', '#66ccff', '#ff9966'];
+// Tipos para la API
+interface ApiStep {
+  cell: [number, number];
+  from_start: number;
+  initial?: boolean;
+}
+
+interface ApiResponse {
+  steps: ApiStep[];
+  path: [number, number][];
+  origin: number;
+}
+
+interface MazeData {
+  grid: number[][];
+  start: number[] | number[][];
+  end: number[] | number[][];
+}
+
+// Constantes
+const START_COLORS = ['#00ff99', '#ffcc00', '#ff66ff', '#66ccff', '#ff9966'] as const;
+const ROWS = 40;
+const COLS = 40;
 
 type BaseCellType = 'empty' | 'wall' | 'start' | 'end' | 'path';
 type CellType = BaseCellType | `visited-${number}`;
 type Point = [number, number];
 type Mode = 'start' | 'end' | 'wall' | 'erase';
 
-// 🔴 CORREGIDO: ahora es 40x40 para coincidir con el backend
-const ROWS = 40;
-const COLS = 40;
-
+// Helper
 const createInitialGrid = (): CellType[][] => {
   const grid: CellType[][] = Array(ROWS).fill(null).map(() => Array(COLS).fill('empty'));
   grid[5][5] = 'start';
-  grid[ROWS - 6][COLS - 6] = 'end'; // → [34][34] en 40x40
+  grid[ROWS - 6][COLS - 6] = 'end';
   return grid;
 };
 
@@ -31,7 +50,11 @@ const AlgorithmVisualizer: React.FC = () => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [noPathMessage, setNoPathMessage] = useState<string | null>(null);
 
-  // Cargar laberintos
+  // 🔑 Clave: sincronizar grid con ref para callbacks asíncronos/eventos rápidos
+  const gridRef = useRef(grid);
+  gridRef.current = grid;
+
+  // Cargar lista de laberintos
   useEffect(() => {
     const fetchMazeList = async () => {
       try {
@@ -39,11 +62,13 @@ const AlgorithmVisualizer: React.FC = () => {
         setAvailableMazes(res.data.mazes || []);
       } catch (err) {
         console.error('No se pudieron cargar los laberintos', err);
+        setAvailableMazes([]);
       }
     };
     fetchMazeList();
   }, []);
 
+  // Cargar un laberinto específico
   const loadMaze = useCallback(async (mazeName: string) => {
     if (mazeName === 'custom') {
       setGrid(createInitialGrid());
@@ -54,18 +79,17 @@ const AlgorithmVisualizer: React.FC = () => {
 
     try {
       const res = await api.get(`/mazes/${mazeName}`);
-      const { grid: backendGrid, start, end } = res.data;
+      const { grid: backendGrid, start, end } = res.data as MazeData;
 
-      // Validar que la grilla tenga al menos una fila
       if (!backendGrid || backendGrid.length === 0) {
         throw new Error('Grilla vacía');
       }
 
       const newGrid: CellType[][] = Array(ROWS).fill(null).map(() => Array(COLS).fill('empty'));
       const rows = backendGrid.length;
-      const cols = backendGrid[0].length;
+      const cols = backendGrid[0]?.length || 0;
 
-      // Copiar muros, truncando o rellenando si es necesario
+      // Copiar muros
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           if (r < rows && c < cols && backendGrid[r][c] === 1) {
@@ -74,30 +98,29 @@ const AlgorithmVisualizer: React.FC = () => {
         }
       }
 
-      const starts: Point[] = Array.isArray(start[0]) ? start : [start];
-      const ends: Point[] = Array.isArray(end[0]) ? end : [end];
+      // Normalizar y ajustar puntos
+      const normalizePoints = (points: number[] | number[][]): Point[] => {
+        const arr = Array.isArray(points[0]) ? (points as number[][]) : [points as number[]];
+        return arr.map(([r, c]) => [
+          Math.max(0, Math.min(r, ROWS - 1)),
+          Math.max(0, Math.min(c, COLS - 1))
+        ] as Point);
+      };
 
-      // Asegurar que todos los puntos estén dentro de [0,39]
-      const adjustedStarts = starts.map(([r, c]) => [
-        Math.max(0, Math.min(r, ROWS - 1)),
-        Math.max(0, Math.min(c, COLS - 1))
-      ] as Point);
-      const adjustedEnds = ends.map(([r, c]) => [
-        Math.max(0, Math.min(r, ROWS - 1)),
-        Math.max(0, Math.min(c, COLS - 1))
-      ] as Point);
+      const safeStarts = normalizePoints(start);
+      const safeEnds = normalizePoints(end);
 
-      // Colocar inicios y fines
-      adjustedStarts.forEach(([r, c]) => {
-        newGrid[r][c] = 'start';
+      // Aplicar inicios y fines
+      safeStarts.forEach(([r, c]) => {
+        if (newGrid[r][c] === 'empty') newGrid[r][c] = 'start';
       });
-      adjustedEnds.forEach(([r, c]) => {
-        newGrid[r][c] = 'end';
+      safeEnds.forEach(([r, c]) => {
+        if (newGrid[r][c] === 'empty') newGrid[r][c] = 'end';
       });
 
-      setGrid(newGrid.map(row => [...row]));
-      setStartPoints(adjustedStarts);
-      setEndPoints(adjustedEnds);
+      setGrid(newGrid);
+      setStartPoints(safeStarts);
+      setEndPoints(safeEnds);
     } catch (err) {
       console.error(`Error al cargar laberinto: ${mazeName}`, err);
       alert('No se pudo cargar el laberinto.');
@@ -108,14 +131,29 @@ const AlgorithmVisualizer: React.FC = () => {
     loadMaze(selectedMaze);
   }, [selectedMaze, loadMaze]);
 
+  // Obtener muros para enviar al backend
+  const getWalls = useCallback((): Point[] => {
+    const walls: Point[] = [];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (grid[r][c] === 'wall') {
+          walls.push([r, c]);
+        }
+      }
+    }
+    return walls;
+  }, [grid]);
+
+  // Aplicar acción de dibujo/borrado (usando ref para estado fresco)
   const applyAction = useCallback((row: number, col: number) => {
     if (isRunning || selectedMaze !== 'custom') return;
     if (mode !== 'wall' && mode !== 'erase') return;
 
+    const current = gridRef.current[row][col]; // ✅ estado actual, no cerrado
+    if (current === 'start' || current === 'end') return;
+
     setGrid(prev => {
       const newGrid = prev.map(r => [...r]);
-      const current = newGrid[row][col];
-      if (current === 'start' || current === 'end') return prev;
       if (mode === 'wall') {
         newGrid[row][col] = 'wall';
       } else if (mode === 'erase') {
@@ -138,27 +176,12 @@ const AlgorithmVisualizer: React.FC = () => {
     }
   };
 
-  const handleMouseUp = () => {
-    setIsDrawing(false);
-  };
+  const handleMouseUp = () => setIsDrawing(false);
 
   useEffect(() => {
-    const handleGlobalMouseUp = () => setIsDrawing(false);
-    window.addEventListener('mouseup', handleGlobalMouseUp);
-    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
   }, []);
-
-  const getWalls = useCallback((): [number, number][] => {
-    const walls: [number, number][] = [];
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        if (grid[r][c] === 'wall') {
-          walls.push([r, c]);
-        }
-      }
-    }
-    return walls;
-  }, [grid]);
 
   const handleCellClick = (row: number, col: number, event: React.MouseEvent) => {
     if (isRunning || selectedMaze !== 'custom') return;
@@ -171,12 +194,12 @@ const AlgorithmVisualizer: React.FC = () => {
     if (currentCell === 'start' || currentCell === 'end') {
       if (currentCell === 'start') {
         const newStarts = startPoints.filter(([r, c]) => !(r === row && c === col));
-        if (newStarts.length === 0) return; // No permitir 0 inicios
+        if (newStarts.length === 0) return;
         setStartPoints(newStarts);
         newGrid[row][col] = 'empty';
       } else {
         const newEnds = endPoints.filter(([r, c]) => !(r === row && c === col));
-        if (newEnds.length === 0) return; // No permitir 0 fines
+        if (newEnds.length === 0) return;
         setEndPoints(newEnds);
         newGrid[row][col] = 'empty';
       }
@@ -214,14 +237,11 @@ const AlgorithmVisualizer: React.FC = () => {
   };
 
   const clearPath = () => {
-    const newGrid = grid.map(row =>
-      row.map(cell => 
-        cell === 'path' || cell.startsWith('visited-') 
-          ? 'empty' 
-          : cell
+    setGrid(prev =>
+      prev.map(row =>
+        row.map(cell => (cell === 'path' || cell.startsWith('visited-') ? 'empty' : cell))
       )
     );
-    setGrid(newGrid);
   };
 
   const clearAll = () => {
@@ -233,8 +253,6 @@ const AlgorithmVisualizer: React.FC = () => {
 
   const runAlgorithm = async (algo: string) => {
     if (isRunning) return;
-    
-    // 🔴 Validación crítica: al menos un inicio y un fin
     if (startPoints.length === 0 || endPoints.length === 0) {
       alert('Debes tener al menos un punto de inicio y uno de fin.');
       return;
@@ -246,7 +264,7 @@ const AlgorithmVisualizer: React.FC = () => {
 
     try {
       const walls = getWalls();
-      const res = await api.post("/run", {
+      const res = await api.post('/run', {
         algorithm: algo,
         maze_custom: {
           rows: ROWS,
@@ -257,13 +275,8 @@ const AlgorithmVisualizer: React.FC = () => {
         }
       });
 
-      const { steps, path: foundPath, origin } = res.data as { 
-        steps: { cell: [number, number], from_start: number }[],
-        path: [number, number][],
-        origin: number
-      };
-
-      const delay = Math.max(10, 100 - speed); // Evitar delay = 0
+      const { steps, path: foundPath } = res.data as ApiResponse;
+      const delay = Math.max(10, 100 - speed);
 
       // Animar exploración
       for (let i = 0; i < steps.length; i++) {
@@ -275,14 +288,14 @@ const AlgorithmVisualizer: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, delay));
         setGrid(prev => {
           const newG = prev.map(row => [...row]);
-          // 🔴 Protección contra origin = -1
           const safeOrigin = rawOrigin < 0 ? 0 : rawOrigin;
-          newG[r][c] = `visited-${safeOrigin % START_COLORS.length}` as CellType;
+          const colorIndex = safeOrigin % START_COLORS.length;
+          newG[r][c] = `visited-${colorIndex}` as CellType;
           return newG;
         });
       }
 
-      // Animar ruta encontrada
+      // Animar ruta final
       for (let i = 0; i < foundPath.length; i++) {
         const [r, c] = foundPath[i];
         const isStart = startPoints.some(([sr, sc]) => sr === r && sc === c);
@@ -297,15 +310,14 @@ const AlgorithmVisualizer: React.FC = () => {
         });
       }
 
-      // Mostrar mensaje si no hay ruta
       if (foundPath.length === 0) {
         setNoPathMessage("No se pudo encontrar una ruta entre los puntos 😢");
         setTimeout(() => setNoPathMessage(null), 4000);
       }
-
     } catch (err: any) {
       console.error(err);
-      alert('Error al ejecutar el algoritmo: ' + (err.response?.data?.detail || err.message));
+      const message = err.response?.data?.detail || err.message || 'Error desconocido';
+      alert(`Error al ejecutar ${algo}: ${message}`);
     } finally {
       setIsRunning(false);
     }
@@ -318,7 +330,6 @@ const AlgorithmVisualizer: React.FC = () => {
         <p>Usa Shift + clic para múltiples inicios/fines. Dibuja obstáculos manteniendo presionado el clic.</p>
       </header>
 
-      {/* Mensaje bonito cuando no hay ruta */}
       {noPathMessage && (
         <div style={{
           position: 'fixed',
@@ -334,39 +345,11 @@ const AlgorithmVisualizer: React.FC = () => {
           textAlign: 'center',
           zIndex: 1000,
           animation: 'fadeIn 0.5s ease',
-          overflow: 'visible'
         }}>
           <strong>¡Ups!</strong> {noPathMessage}
-          <div style={{ marginTop: '8px', fontSize: '0.9rem' }}>Intenta modificar los obstáculos o los puntos de inicio/fin.</div>
-
-          {/* Emojis animados */}
-          {['😱', '🤯', '💥', '❌'].map((emoji, idx) => (
-            <span
-              key={idx}
-              style={{
-                position: 'absolute',
-                top: `${Math.random() * 60 - 30}%`,
-                left: `${Math.random() * 60 - 30}%`,
-                fontSize: `${20 + Math.random() * 20}px`,
-                animation: `bounce-${idx} 1.5s ease-in-out infinite alternate`,
-                pointerEvents: 'none'
-              }}
-            >
-              {emoji}
-            </span>
-          ))}
-
-          <style>
-            {`
-              ${['0','1','2','3'].map(idx => `
-                @keyframes bounce-${idx} {
-                  0% { transform: translate(0, 0) rotate(0deg); }
-                  50% { transform: translate(${(Math.random() - 0.5) * 40}px, ${(Math.random() - 0.5) * 40}px) rotate(${Math.random()*360}deg); }
-                  100% { transform: translate(0, 0) rotate(0deg); }
-                }
-              `).join('')}
-            `}
-          </style>
+          <div style={{ marginTop: '8px', fontSize: '0.9rem' }}>
+            Intenta modificar los obstáculos o los puntos de inicio/fin.
+          </div>
         </div>
       )}
 
@@ -421,18 +404,16 @@ const AlgorithmVisualizer: React.FC = () => {
           </div>
 
           <div className="algo-buttons">
-            <button className="algo-btn" onClick={() => runAlgorithm('bfs')} disabled={isRunning}>
-              BFS
-            </button>
-            <button className="algo-btn" onClick={() => runAlgorithm('dfs')} disabled={isRunning}>
-              DFS
-            </button>
-            <button className="algo-btn" onClick={() => runAlgorithm('greedy')} disabled={isRunning}>
-              Greedy
-            </button>
-            <button className="algo-btn" onClick={() => runAlgorithm('astar')} disabled={isRunning}>
-              A*
-            </button>
+            {(['bfs', 'dfs', 'greedy', 'astar'] as const).map(algo => (
+              <button
+                key={algo}
+                className="algo-btn"
+                onClick={() => runAlgorithm(algo)}
+                disabled={isRunning}
+              >
+                {algo === 'astar' ? 'A*' : algo.toUpperCase()}
+              </button>
+            ))}
           </div>
 
           <div className="controls">
@@ -457,7 +438,7 @@ const AlgorithmVisualizer: React.FC = () => {
           </div>
         </div>
 
-        <div 
+        <div
           className="grid-container"
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
@@ -469,9 +450,9 @@ const AlgorithmVisualizer: React.FC = () => {
                 className={`cell ${cell}`}
                 style={{
                   cursor: mode === 'wall' || mode === 'erase' ? 'crosshair' : 'pointer',
-                  backgroundColor: cell.startsWith('visited-') 
-                    ? START_COLORS[parseInt(cell.split('-')[1]) % START_COLORS.length] 
-                    : undefined
+                  backgroundColor: cell.startsWith('visited-')
+                    ? START_COLORS[parseInt(cell.split('-')[1]) % START_COLORS.length]
+                    : undefined,
                 }}
                 onMouseDown={() => handleMouseDown(r, c)}
                 onMouseEnter={() => handleMouseEnter(r, c)}

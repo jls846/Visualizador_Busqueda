@@ -56,3 +56,54 @@ def get_maze(maze_name: str):
     if maze_name not in MAZES:
         raise HTTPException(status_code=404, detail="Maze not found")
     return MAZES[maze_name]
+
+# ─── Modelos adicionales ───────────────────────────────────────────────
+class PredefinedMazeRequest(BaseModel):
+    maze_name: str
+    start: List[int]
+    end: List[int]
+
+# ─── Endpoints por algoritmo ───────────────────────────────────────────
+@app.post("/bfs")
+def run_bfs(req: PredefinedMazeRequest):
+    if req.maze_name not in MAZES:
+        raise HTTPException(status_code=404, detail="Maze not found")
+    maze = MAZES[req.maze_name]
+    try:
+        result = run_custom_algorithm("bfs", maze["grid"], req.start, req.end)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/dfs")
+def run_dfs(req: PredefinedMazeRequest):
+    if req.maze_name not in MAZES:
+        raise HTTPException(status_code=404, detail="Maze not found")
+    maze = MAZES[req.maze_name]
+    try:
+        result = run_custom_algorithm("dfs", maze["grid"], req.start, req.end)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/greedy")
+def run_greedy(req: PredefinedMazeRequest):
+    if req.maze_name not in MAZES:
+        raise HTTPException(status_code=404, detail="Maze not found")
+    maze = MAZES[req.maze_name]
+    try:
+        result = run_custom_algorithm("greedy", maze["grid"], req.start, req.end)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/astar")
+def run_astar(req: PredefinedMazeRequest):
+    if req.maze_name not in MAZES:
+        raise HTTPException(status_code=404, detail="Maze not found")
+    maze = MAZES[req.maze_name]
+    try:
+        result = run_custom_algorithm("astar", maze["grid"], req.start, req.end)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
