@@ -50,3 +50,88 @@ venv\Scripts\activate       # Windows
 
 pip install -r requirements.txt
 ```
+### 2. Configurar el backend (Python)
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate    # Linux/macOS
+# o
+venv\Scripts\activate       # Windows
+
+pip install -r requirements.txt
+```
+
+Crear `.env` en `backend/`:
+
+```env
+API_HOST=127.0.0.1
+API_PORT=8000
+FRONTEND_URL=http://localhost:3000
+```
+
+Ejecutar:
+
+```bash
+uvicorn main:app --reload
+```
+
+> ✅ Backend corriendo en: `http://localhost:8000`
+
+---
+
+### 3. Configurar el frontend (React)
+
+```bash
+cd ../frontend
+```
+
+Crear `.env` en `frontend/`:
+
+```env
+REACT_APP_API_BASE_URL=http://localhost:8000
+```
+
+Instalar y ejecutar:
+
+```bash
+npm install
+npm start
+```
+
+> ✅ Frontend corriendo en: `http://localhost:3000`
+
+---
+
+## 🧪 Cómo usar
+
+- **Selecciona un laberinto** o diseña el tuyo.
+- Cambia el **modo**:
+  - 🟢 **Inicio**: coloca puntos de inicio.
+  - 🔴 **Fin**: coloca puntos de fin.
+  - ⬛ **Obstáculo**: dibuja paredes.
+  - 🧹 **Borrar**: limpia celdas.
+- Ejecuta cualquier algoritmo: **BFS, DFS, Greedy, A\***.
+- Usa **Shift + clic** para múltiples inicios/fines.
+- Ajusta la **velocidad** de la animación.
+- Haz clic en **"Limpiar Ruta"** para reiniciar sin perder el laberinto.
+
+---
+
+## 📁 Estructura del proyecto
+
+```
+algorithm-visualizer/
+├── backend/
+│   ├── main.py
+│   ├── algorithms.py
+│   ├── requirements.txt
+│   └── .env
+├── frontend/
+│   ├── src/
+│   │   ├── components/AlgorithmVisualizer.tsx
+│   │   └── api.ts
+│   ├── .env
+│   └── package.json
+├── .gitignore
+└── README.md
