@@ -39,3 +39,14 @@ Permite crear laberintos personalizados, cargar ejemplos predefinidos y observar
 git clone https://github.com/jluss/algorithm-visualizer.git
 cd algorithm-visualizer
 ```
+### 2. Configurar el backend (Python)
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate    # Linux/macOS
+# o
+venv\Scripts\activate       # Windows
+
+pip install -r requirements.txt
+```
