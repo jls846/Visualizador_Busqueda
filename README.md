@@ -115,7 +115,25 @@ npm start
 - Haz clic en **"Limpiar Ruta"** para reiniciar sin perder el laberinto.
 
 ---
+## 📘 Documentación de la API
 
+El backend expone los siguientes endpoints, documentados automáticamente con **OpenAPI/Swagger**:
+
+- **Documentación interactiva**: [`http://localhost:8000/docs`](http://localhost:8000/docs)
+
+### Endpoints principales
+
+| Método | Ruta             | Descripción                                      |
+|--------|------------------|--------------------------------------------------|
+| `GET`  | `/mazes`         | Lista los nombres de los laberintos predefinidos |
+| `GET`  | `/mazes/{name}`  | Devuelve los datos completos de un laberinto     |
+| `POST` | `/bfs`           | Ejecuta **BFS** en un laberinto predefinido      |
+| `POST` | `/dfs`           | Ejecuta **DFS** en un laberinto predefinido      |
+| `POST` | `/greedy`        | Ejecuta **Greedy Best-First**                    |
+| `POST` | `/astar`         | Ejecuta **A\***                                  |
+| `POST` | `/run`           | Ejecuta cualquier algoritmo en un laberinto personalizado |
+
+> 💡 Usa la interfaz en `/docs` para probar los endpoints directamente desde el navegador.
 ## 📁 Estructura del proyecto
 
 ```
