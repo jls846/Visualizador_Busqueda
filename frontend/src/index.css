@@ -1,0 +1,131 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #1e1e2f;
+  color: #e0e0e0;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  text-align: center;
+  padding: 20px 10px;
+  background: #2a2a3d;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+  margin-bottom: 20px;
+  border-bottom: 2px solid #444;
+}
+
+header h1 { font-size: 1.8rem; color: #f0f0f0; margin-bottom: 6px; }
+header p { color: #b0b0b0; }
+
+.toolbar {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;
+  padding: 15px;
+  background: #2a2a3d;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.mode-btn, .algo-btn, .control-btn {
+  padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer;
+  font-weight: 600; font-size: 0.9rem; transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.mode-btn.active { background: #6c63ff; color: white; }
+.mode-btn:not(.active) { background: #44445a; color: #ccc; }
+
+.algo-btn { background: #38a169; color: white; }
+.algo-btn:hover { background: #2f855a; transform: scale(1.05); }
+
+.control-btn { background: #718096; color: white; }
+.control-btn:hover { background: #4a5568; transform: scale(1.05); }
+
+.grid-container {
+
+  display: grid;
+  grid-template-columns: repeat(40, 16px);
+  gap: 1px;
+  justify-content: center;
+  margin: 0 auto 20px;
+  padding: 8px;
+  background: #2a2a3d;
+  border-radius: 8px;
+  max-width: 95vw;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.cell {
+  width: 16px;
+  height: 16px;
+  background: #3b3b55;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+.cell:hover { transform: scale(1.1); }
+
+.cell.start { background: #00ff99; }
+.cell.end { background: #ff6666; }
+.cell.wall { background: #1a1a2e; }
+.cell.visited { background: #ffee58; }
+.cell.path { background: #42a5f5; }
+
+.legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 12px;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+.color-box {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  border-radius: 2px;
+  vertical-align: middle;
+  border: 1px solid #666;
+}
+.color-box.start { background: #00ff99; }
+.color-box.end { background: #ff6666; }
+.color-box.wall { background: #1a1a2e; }
+.color-box.visited { background: #ffee58; }
+.color-box.path { background: #42a5f5; }
+
+@media (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: repeat(25, 16px);
+  }
+  .cell {
+    width: 16px;
+    height: 16px;
+  }
+}
+/* Colores para múltiples inicios */
+.cell.visited-0 { background-color: #00ff99; } /* verde */
+.cell.visited-1 { background-color: #ffcc00; } /* amarillo */
+.cell.visited-2 { background-color: #ff66ff; } /* rosa */
+.cell.visited-3 { background-color: #66ccff; } /* azul */
+.cell.visited-4 { background-color: #ff9966; } /* naranja */
+
+/* Prioridad */
+.cell.start { background-color: #00ff99 !important; }
+.cell.end { background-color: #ff6666 !important; }
+.cell.path { background-color: #42a5f5 !important; }
