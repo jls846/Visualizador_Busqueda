@@ -244,7 +244,7 @@ def bfs_multi(grid, starts, ends):
     return steps, [], -1
 
 # ============================================================
-# DFS MULTI-ORIGEN (versión final y optimizada)
+# DFS MULTI-ORIGEN 
 # ============================================================
 def dfs_multi(grid, starts, ends):
     stack = []
@@ -270,18 +270,14 @@ def dfs_multi(grid, starts, ends):
         if came_from[(r, c)] is not None:
             steps.append({"cell": [r, c], "from_start": origin})
 
-        # ¿Llegamos?
         if (r, c) in ends:
             return (
                 steps,
                 reconstruct_path(came_from, starts[origin], (r, c)),
                 origin
             )
-
-        # Obtener vecinos válidos
         neighbors = list(get_neighbors(grid, r, c))
-
-        # IMPORTANTE: reversed() hace que DFS respete el orden estándar
+        
         for nr, nc in reversed(neighbors):
             if (nr, nc) not in visited:
                 visited[(nr, nc)] = origin
