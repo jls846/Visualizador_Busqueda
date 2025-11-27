@@ -48,17 +48,6 @@ venv\Scripts\activate       # Windows
 
 pip install -r requirements.txt
 ```
-### 2. Configurar el backend (Python)
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate    # Linux/macOS
-# o
-venv\Scripts\activate       # Windows
-
-pip install -r requirements.txt
-```
 
 Crear `.env` en `backend/`:
 
