@@ -34,8 +34,8 @@ Permite crear laberintos personalizados, cargar ejemplos predefinidos y observar
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/jluss/algorithm-visualizer.git
-cd algorithm-visualizer
+https://github.com/jls846/Visualizador_Busqueda.git
+cd Visualizador_Busqueda
 ```
 ### 2. Configurar el backend (Python)
 
