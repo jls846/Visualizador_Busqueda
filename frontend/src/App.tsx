@@ -1,12 +1,12 @@
 import React from 'react';
 import './index.css';
 import './App.css'; 
-import MazeVisualizer from './components/MazeVisualizer';
+import AlgorithmVisualizer from './components/AlgorithmVisualizer';
 
 function App() {
   return (
     <div className="App">
-      <MazeVisualizer />
+      <AlgorithmVisualizer />
     </div>
   );
 }

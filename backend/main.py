@@ -44,8 +44,8 @@ def get_mazes():
 def run_pathfinding(req: CustomAlgorithmRequest):
     try:
         grid = grid_from_custom(req.maze_custom)
-        start = req.maze_custom["start"]  # ✅ NO convertir a tuple
-        end = req.maze_custom["end"]      # ✅ NO convertir a tuple
+        start = req.maze_custom["start"] 
+        end = req.maze_custom["end"]     
         result = run_custom_algorithm(req.algorithm, grid, start, end)
         return result
     except Exception as e:

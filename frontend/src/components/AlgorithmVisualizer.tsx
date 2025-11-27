@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
 
-// Tipos para la API
 interface ApiStep {
   cell: [number, number];
   from_start: number;
@@ -50,7 +49,6 @@ const AlgorithmVisualizer: React.FC = () => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [noPathMessage, setNoPathMessage] = useState<string | null>(null);
 
-  // 🔑 Clave: sincronizar grid con ref para callbacks asíncronos/eventos rápidos
   const gridRef = useRef(grid);
   gridRef.current = grid;
 

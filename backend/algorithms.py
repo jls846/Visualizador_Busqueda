@@ -133,8 +133,7 @@ MAZES = {
             [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
             [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         ],
-        "start": [1, 0],       # ✅ corregido
-        "end": [19, 20]
+        "start": [1, 0],      
     },
     "dense_40": {
         "grid": [
@@ -167,7 +166,7 @@ MAZES = {
             [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         ],
         "start": [0, 0],
-        "end": [26, 39]        # ✅ corregido
+        "end": [26, 39]       
     }
 }
 
@@ -183,7 +182,7 @@ def normalize_points(data):
 # Vecinos válidos
 # ============================================================
 def get_neighbors(grid, r, c):
-    moves = [(0,1), (0,-1), (1,0), (-1,0)]  # arriba, abajo, izq, der
+    moves = [(-1,0), (1,0), (0,1), (0,)]  # arriba, abajo, izq, der
     R, C = len(grid), len(grid[0])
     for dr, dc in moves:
         nr, nc = r + dr, c + dc
@@ -245,38 +244,51 @@ def bfs_multi(grid, starts, ends):
     return steps, [], -1
 
 # ============================================================
-# DFS MULTI-ORIGEN (¡CORREGIDO!)
+# DFS MULTI-ORIGEN (versión final y optimizada)
 # ============================================================
 def dfs_multi(grid, starts, ends):
-    stack = [(s, i) for i, s in enumerate(starts)]
+    stack = []
     visited = {}
     came_from = {}
     steps = []
 
-    for s, i in stack:
+    # Inicializar todos los orígenes
+    for i, s in enumerate(starts):
+        stack.append((s, i))
         visited[s] = i
         came_from[s] = None
-        steps.append({"cell": [s[0], s[1]], "from_start": i, "initial": True})
+        steps.append({
+            "cell": [s[0], s[1]],
+            "from_start": i,
+            "initial": True
+        })
 
     while stack:
         (r, c), origin = stack.pop()
 
+        # Registrar el paso (si no es inicio)
         if came_from[(r, c)] is not None:
             steps.append({"cell": [r, c], "from_start": origin})
 
+        # ¿Llegamos?
         if (r, c) in ends:
-            return steps, reconstruct_path(came_from, starts[origin], (r, c)), origin
+            return (
+                steps,
+                reconstruct_path(came_from, starts[origin], (r, c)),
+                origin
+            )
 
-        # 🔁 ¡CORRECCIÓN CLAVE AQUÍ!
+        # Obtener vecinos válidos
         neighbors = list(get_neighbors(grid, r, c))
-        for nr, nc in reversed(neighbors):  # ← esto hace que se respete el orden original
+
+        # IMPORTANTE: reversed() hace que DFS respete el orden estándar
+        for nr, nc in reversed(neighbors):
             if (nr, nc) not in visited:
                 visited[(nr, nc)] = origin
                 came_from[(nr, nc)] = (r, c)
                 stack.append(((nr, nc), origin))
 
     return steps, [], -1
-
 # ============================================================
 # GREEDY MULTI-ORIGEN
 # ============================================================
