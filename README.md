@@ -99,7 +99,7 @@ npm start
   - ⬛ **Obstáculo**: dibuja paredes.
   - 🧹 **Borrar**: limpia celdas.
 - Ejecuta cualquier algoritmo: **BFS, DFS, Greedy, A\***.
-- Usa **Shift** + **clic** para múltiples inicios/fines.
+- Usar **Shift** + **clic** para múltiples inicios/fines.
 - Ajusta la **velocidad** de la animación.
 - Haz clic en **Limpiar Ruta** para reiniciar sin perder el laberinto.
 
