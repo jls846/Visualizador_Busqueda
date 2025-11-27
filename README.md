@@ -10,7 +10,7 @@ Permite crear laberintos personalizados, cargar ejemplos predefinidos y observar
 
 ---
 
-## ✨ Características
+##  Características
 
 - Soporte para **múltiples puntos de inicio y fin** (`Shift + clic`).
 - Laberintos predefinidos: `classic_40`, `open_40`, `spiral_40`, `dense_40`.
@@ -29,24 +29,13 @@ Permite crear laberintos personalizados, cargar ejemplos predefinidos y observar
 
 ---
 
-## 🚀 Instrucciones de instalación
+##  Instrucciones de instalación
 
 ### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/jluss/algorithm-visualizer.git
 cd algorithm-visualizer
-```
-### 2. Configurar el backend (Python)
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate    # Linux/macOS
-# o
-venv\Scripts\activate       # Windows
-
-pip install -r requirements.txt
 ```
 ### 2. Configurar el backend (Python)
 
@@ -74,7 +63,7 @@ Ejecutar:
 uvicorn main:app --reload
 ```
 
-> ✅ Backend corriendo en: `http://localhost:8000`
+>  Backend corriendo en: `http://localhost:8000`
 
 ---
 
@@ -97,7 +86,7 @@ npm install
 npm start
 ```
 
-> ✅ Frontend corriendo en: `http://localhost:3000`
+>  Frontend corriendo en: `http://localhost:3000`
 
 ---
 
@@ -115,7 +104,7 @@ npm start
 - Haz clic en **"Limpiar Ruta"** para reiniciar sin perder el laberinto.
 
 ---
-## 📘 Documentación de la API
+##  Documentación de la API
 
 El backend expone los siguientes endpoints, documentados automáticamente con **OpenAPI/Swagger**:
 
@@ -133,7 +122,7 @@ El backend expone los siguientes endpoints, documentados automáticamente con **
 | `POST` | `/astar`         | Ejecuta **A\***                                  |
 | `POST` | `/run`           | Ejecuta cualquier algoritmo en un laberinto personalizado |
 
-> 💡 Usa la interfaz en `/docs` para probar los endpoints directamente desde el navegador.
+>  Usa la interfaz en `/docs` para probar los endpoints directamente desde el navegador.
 ## 📁 Estructura del proyecto
 
 ```
