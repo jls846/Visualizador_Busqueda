@@ -182,7 +182,7 @@ def normalize_points(data):
 # Vecinos válidos
 # ============================================================
 def get_neighbors(grid, r, c):
-    moves = [(-1,0), (1,0), (0,1), (0,)]  # arriba, abajo, izq, der
+    moves = [(-1,0), (1,0), (0,1), (0,-1)]  # arriba, abajo, izq, der
     R, C = len(grid), len(grid[0])
     for dr, dc in moves:
         nr, nc = r + dr, c + dc
